@@ -1,54 +1,79 @@
 
 const St = imports.gi.St;
 const Main = imports.ui.main;
-const Tweener = imports.ui.tweener;
+const PanelMenu = imports.ui.panelMenu;
+const PopupMenu = imports.ui.popupMenu;
+const Shell = imports.gi.Shell;
 
-let text, button;
+const ICON_SIZE = 28;
 
-function _hideHello() {
-    Main.uiGroup.remove_actor(text);
-    text = null;
+function AppMenuItem() {
+    this._init.apply(this, arguments);
 }
 
-function _showHello() {
-    if (!text) {
-        text = new St.Label({ style_class: 'helloworld-label', text: "Hello, world!" });
-        Main.uiGroup.add_actor(text);
+AppMenuItem.prototype = {
+    __proto__: PopupMenu.PopupBaseMenuItem.prototype,
+
+    _init: function (app) {
+        PopupMenu.PopupBaseMenuItem.prototype._init.call(this, {reactive: false});
+
+        this._app = app;
+        this.label = new St.Label({ text: app.get_name() });
+        this.addActor(this.label);
+    },
+
+    activate: function (event) {
+        this._app.activate_full(-1, event.get_time());
+
+        PopupMenu.PopupBaseMenuItem.prototype.activate.call(this, event);
     }
+};
 
-    text.opacity = 255;
-
-    let monitor = Main.layoutManager.primaryMonitor;
-
-    text.set_position(Math.floor(monitor.width / 2 - text.width / 2),
-                      Math.floor(monitor.height / 2 - text.height / 2));
-
-    Tweener.addTween(text,
-                     { opacity: 0,
-                       time: 2,
-                       transition: 'easeOutQuad',
-                       onComplete: _hideHello });
+function ApplicationsButton() {
+    this._init();
 }
 
-function init() {
-    button = new St.Bin({ style_class: 'panel-button',
-                          reactive: true,
-                          can_focus: true,
-                          x_fill: true,
-                          y_fill: false,
-                          track_hover: true });
-    let icon = new St.Icon({ icon_name: 'system-run',
-                             icon_type: St.IconType.SYMBOLIC,
-                             style_class: 'system-status-icon' });
+ApplicationsButton.prototype = {
+    __proto__: PanelMenu.SystemStatusButton.prototype,
 
-    button.set_child(icon);
-    button.connect('button-press-event', _showHello);
-}
+    _init: function() {
+        PanelMenu.SystemStatusButton.prototype._init.call(this, 'media-optical');
+        this._display();
+    },
+
+    refresh : function() {
+        this._clearAll();
+        this._display();
+    },
+
+    _clearAll: function() {
+        this.menu.removeAll();
+    },
+
+    _display: function() {
+        let ap = Shell.AppUsage.get_default();
+        let apps = ap.get_most_used("", 0);
+
+        for each(app in apps) {
+            let item = new AppMenuItem(app.get_name());
+            this.menu.addMenuItem(item);
+        }
+    }
+};
+
+let appsMenuButton;
 
 function enable() {
-    Main.panel._rightBox.insert_actor(button, 0);
+    appsMenuButton = new ApplicationsButton();
+    Main.panel._rightBox.insert_actor(appsMenuButton.actor, 0);
+    Main.panel._rightBox.child_set(appsMenuButton.actor, { y_fill: true } );
+    Main.panel._menus.addMenu(appsMenuButton.menu);
 }
 
 function disable() {
-    Main.panel._rightBox.remove_actor(button);
+    appsMenuButton.destroy();
+}
+
+function init() {
+    // Do nothing
 }
