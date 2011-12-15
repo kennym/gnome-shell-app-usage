@@ -55,7 +55,7 @@ ApplicationsButton.prototype = {
         let apps = ap.get_most_used("", 0);
 
         for each(app in apps) {
-            let item = new AppMenuItem(app.get_name());
+            let item = new AppMenuItem(app);
             this.menu.addMenuItem(item);
         }
     }
