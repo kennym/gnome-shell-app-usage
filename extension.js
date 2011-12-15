@@ -54,7 +54,8 @@ ApplicationsButton.prototype = {
         let ap = Shell.AppUsage.get_default();
         let apps = ap.get_most_used("", 0);
 
-        for each(app in apps) {
+        // Show the 5 most used apps
+        for each(app in apps.slice(0, 5)) {
             let item = new AppMenuItem(app);
             this.menu.addMenuItem(item);
         }

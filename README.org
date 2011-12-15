@@ -1,0 +1,7 @@
+* AppUsage Shell extension
+
+Shows most used apps in gnome-shell, and will hopefully show some
+fancy graphs in the future.
+
+It pretty much shows only a list of most used applications in
+gnome-shell, but I am working on it. Contributions welcome.
